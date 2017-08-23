@@ -326,7 +326,7 @@ function ConvertFrom-VMHostCPUID {
         }
         Catch {
             Write-Warning "Could not fetch ESXi CPUID information via esxcli."
-            exit 1
+            return
         }
 
         # Decode 01H/EAX
