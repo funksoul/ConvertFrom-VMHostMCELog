@@ -593,7 +593,7 @@ function ConvertFrom-IA32_MCG_CAP {
 function ConvertFrom-VMHostMCELog {
     <#
     .SYNOPSIS
-    Decode ESXi MCE(Machine Check Exception) log entry of the vmkernel.log.
+    Decode MCE(Machine Check Exception) log entry of the ESXi vmkernel.log.
 
     .DESCRIPTION
     The machine check architecture is a mechanism within a CPU to detect and report hardware issues. When a problem is detected, a Machine Check Exception (MCE) is thrown.
