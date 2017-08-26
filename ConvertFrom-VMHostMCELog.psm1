@@ -519,6 +519,7 @@ function ConvertFrom-IA32_MCG_CAP {
     * ESXi 5.x, 6.x
         [root@vmhost:~] zcat /var/log/boot.gz | grep MCG_CAP
         0:00:00:07.008 cpu0:32768)MCE: 1480: Detected 9 MCE banks. MCG_CAP MSR:0x1c09
+        0:00:00:07.438 cpu0:32768)MCEIntel: 1072: Enabled CMCI signaling of uncorrected patrol scrub errors
 
     .PARAMETER MSR
     IA32_MCG_CAP MSR (in hex)
@@ -790,15 +791,14 @@ function ConvertFrom-VMHostMCELog {
     }
 
     Process {
-        $InputObject -split "`n" | Where-Object { $_ -like "*MCE:*cpu*bank*Addr:*Misc:*" } | ForEach-Object {
-            $parsed = $_ -split ' '
+        $InputObject -split "`n" | Where-Object { $_ -like "*MCE:*cpu*bank*status=*Addr:*Misc:*" } | ForEach-Object {
             $parsed_data = @{
-                "timestamp" = $parsed[0]
-                "status" = $parsed[5].Substring(7, 18)
-                "cpu" = ($parsed[3] -replace "^cpu","") -replace ":$"
-                "bank" = ($parsed[4] -replace "^bank","") -replace ":$"
-                "addr" = $parsed[13].Substring(5, $parsed[13].Length - 5)
-                "misc" = $parsed[15].Substring(5, $parsed[15].Length - 5)
+                "timestamp" = ($_ -split " ")[0]
+                "status" = (($_ -split "status=")[1] -split ":")[0]
+                "cpu" = (($_ -split "cpu")[2] -split ":")[0]
+                "bank" = (($_ -split "bank")[1] -split ":")[0]
+                "addr" = (($_ -split "Addr:")[1] -split " ")[0]
+                "misc" = (($_ -split "Misc:")[1] -split " ")[0]
             }
 
             # IA32_MCi_STATUS MSRs
