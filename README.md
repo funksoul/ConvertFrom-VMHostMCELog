@@ -1,10 +1,5 @@
 # ConvertFrom-VMHostMCELog
 
-<<<<<<< HEAD
-A PowerShell Module for decoding MCE(Machine Check Exception) log entry of the ESXi vmkernel.log.
-=======
-A PowerShell Module for decoding MCE(Machine Check Exception) log entry of the ESXi vmkernel.log.  
->>>>>>> bd36d1b7b1b4f96ac12176846f76dd115b78ac5d
 This module reveals three Cmdlets:
   * ConvertFrom-VMHostMCELog
   * ConvertFrom-IA32\_MCG\_CAP - Decode IA32\_MCG\_CAP MSR. (Model Specific Register)
