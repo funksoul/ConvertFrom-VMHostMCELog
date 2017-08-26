@@ -490,11 +490,11 @@ function ConvertFrom-VMHostCPUID {
     }
 
     End {
-        Switch ($ProcessorSignature) {
-            $true {
+        if ($CPUID.Count) {
+            if ($ProcessorSignature) {
                 return $CPUID_01H.EAX.DisplayFamily_DisplayModel
             }
-            $false {
+            else {
                 return @{
                     "CPUID" = $CPUID
                     "CPUID_01H" = $CPUID_01H
@@ -519,7 +519,6 @@ function ConvertFrom-IA32_MCG_CAP {
     * ESXi 5.x, 6.x
         [root@vmhost:~] zcat /var/log/boot.gz | grep MCG_CAP
         0:00:00:07.008 cpu0:32768)MCE: 1480: Detected 9 MCE banks. MCG_CAP MSR:0x1c09
-        0:00:00:07.438 cpu0:32768)MCEIntel: 1072: Enabled CMCI signaling of uncorrected patrol scrub errors
 
     .PARAMETER MSR
     IA32_MCG_CAP MSR (in hex)
@@ -853,18 +852,16 @@ function ConvertFrom-VMHostMCELog {
                         $IA32_MCi_STATUS.reserved_error_status_other_information.Add("AR", (Read-Register $IA32_MCi_STATUS_MSR 55))
                     }
                     # If IA32_MCG_CAP[24] is 0, bits 56:55 are reserved.
-                    # and bits 54:53 for threshold-based error reporting
                     else {
-                        # If the UC bit (Figure 15-6) is 0, bits 54:53 indicate the status of the hardware structure
-                        # that reported the threshold-based error.
-                        if ($IA32_MCi_STATUS.status_register_validity_indicators.UC -eq "0") {
-                            if ($IA32_MCG_CAP.MCG_CMCI_P -eq "1") {
-                                $IA32_MCi_STATUS.reserved_error_status_other_information.Add("Threshold-Based_Error_Status", $IA32_MCi_STATUS_Sub_Fields.threshold_based_error.(Read-Register $IA32_MCi_STATUS_MSR 54 53))
-                            }
-                        }
-                        # If the UC bit (Figure 15-6) is 1, bits 54:53 are undefined.
-                        else {
-                        }
+                    }
+
+                    # If the UC bit (Figure 15-6) is 0, bits 54:53 indicate the status of the hardware structure
+                    # that reported the threshold-based error.
+                    if ($IA32_MCi_STATUS.status_register_validity_indicators.UC -eq "0") {
+                        $IA32_MCi_STATUS.reserved_error_status_other_information.Add("Threshold-Based_Error_Status", $IA32_MCi_STATUS_Sub_Fields.threshold_based_error.(Read-Register $IA32_MCi_STATUS_MSR 54 53))
+                    }
+                    # If the UC bit (Figure 15-6) is 1, bits 54:53 are undefined.
+                    else {
                     }
                 }
                 # If IA32_MCG_CAP[11] is 0, bits 56:53 are part of the “Other Information” field. (model-specific)
@@ -908,25 +905,23 @@ function ConvertFrom-VMHostMCELog {
                     }
                 }
 
-                # When IA32_MCG_CAP[10] = 0, bits 52:38 are part of the “Other Information” field. (model-specific)
-                # The use of bits 52:38 for corrected MC error count is introduced with Intel 64 processor
-                # on which CPUID reports DisplayFamily_DisplayModel as 06H_1AH.
-                if ($IA32_MCG_CAP.MCG_CMCI_P -eq "0") {
-                }
                 # If IA32_MCG_CAP[10] is 1, bits 52:38 are architectural (not model-specific).
                 # In this case, bits 52:38 reports the value of a 15 bit counter that increments
                 # each time a corrected error is observed by the MCA recording bank.
                 # This count value will continue to increment until cleared by software.
-                else {
+                if ($IA32_MCG_CAP.MCG_CMCI_P -eq "1") {
                     if ($IA32_MCi_STATUS.status_register_validity_indicators.UC -eq "0") {
                         # The most significant bit, 52, is a sticky count overflow bit.
                         if ((Read-Register $IA32_MCi_STATUS_MSR 52) -eq "0") {
-                            $IA32_MCi_STATUS.reserved_error_status_other_information.Add("Corrected_Error_Count", [System.Convert]::ToInt16((Read-Register $IA32_MCi_STATUS_MSR 52 38), 2))
+                            $IA32_MCi_STATUS.reserved_error_status_other_information.Add("Corrected_Error_Count", [System.Convert]::ToInt16((Read-Register $IA32_MCi_STATUS_MSR 51 38), 2))
                         }
                         else {
                             $IA32_MCi_STATUS.reserved_error_status_other_information.Add("Corrected_Error_Count", "Overflow")
                         }
                     }
+                }
+                # When IA32_MCG_CAP[10] = 0, bits 52:38 are part of the “Other Information” field. (model-specific)
+                else {
                 }
 
                 # If IA32_MCG_CAP.MCG_EMC_P[bit 25] is 0, bits 37:32 contain “Other Information” that is implementation-
