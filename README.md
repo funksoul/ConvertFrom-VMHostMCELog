@@ -1,6 +1,10 @@
 # ConvertFrom-VMHostMCELog
 
+<<<<<<< HEAD
 A PowerShell Module for decoding MCE(Machine Check Exception) log entry of the ESXi vmkernel.log.
+=======
+A PowerShell Module for decoding MCE(Machine Check Exception) log entry of the ESXi vmkernel.log.  
+>>>>>>> bd36d1b7b1b4f96ac12176846f76dd115b78ac5d
 This module reveals three Cmdlets:
   * ConvertFrom-VMHostMCELog
   * ConvertFrom-IA32\_MCG\_CAP - Decode IA32\_MCG\_CAP MSR. (Model Specific Register)
@@ -10,8 +14,8 @@ The machine check architecture is a mechanism within a CPU to detect and report 
 MCE consists of a set of model-specific registers (MSRs) that are used to set up machine checking and additional banks of MSRs used for recording errors that are detected.
 This Cmdlet reads MSRs from the vmkernel.log and decodes its contents as much as possible.
 
-\* Parameters are ***required*** - IA32MCG_CAP, ProcessorSignature
-  (Cmdlets are provided separately / ConvertFrom-IA32\_MCG\_CAP and ConvertFrom-VMHostCPUID)
+\* Parameters are ***required*** - IA32MCG_CAP, ProcessorSignature  
+  (Cmdlets are provided separately / ConvertFrom-IA32\_MCG\_CAP and ConvertFrom-VMHostCPUID)  
 \* Only Intel(R) Processors are supported.
 
 For more information, please consult the help page of each Cmdlet.
