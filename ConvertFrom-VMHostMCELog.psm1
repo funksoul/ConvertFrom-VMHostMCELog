@@ -877,20 +877,20 @@ function ConvertFrom-VMHostMCELog {
 
                 # Indicates (when set) that the processor supports software error recovery
                 # Determine Type of Error
-                $MC_Error_Type_Code = $IA32_MCi_STATUS.status_register_validity_indicators.UC `
-                    + $IA32_MCi_STATUS.status_register_validity_indicators.EN `
-                    + $IA32_MCi_STATUS.status_register_validity_indicators.PCC `
-                    + $IA32_MCi_STATUS.reserved_error_status_other_information.S `
-                    + $IA32_MCi_STATUS.reserved_error_status_other_information.AR
-                Write-Verbose "Status register validity indicators:"
-                $message = "  => UC:  " + $IA32_MCi_STATUS.status_register_validity_indicators.UC; Write-Verbose $message
-                $message = "  => EN:  " + $IA32_MCi_STATUS.status_register_validity_indicators.EN; Write-Verbose $message
-                $message = "  => PCC: " + $IA32_MCi_STATUS.status_register_validity_indicators.PCC; Write-Verbose $message
-                $message = "  => S:   " + $IA32_MCi_STATUS.reserved_error_status_other_information.S; Write-Verbose $message
-                $message = "  => AR:  " + $IA32_MCi_STATUS.reserved_error_status_other_information.AR; Write-Verbose $message
-                Write-Verbose "UCR Error Type Code: $MC_Error_Type_Code"
-
                 if ($IA32_MCG_CAP.MCG_SER_P -eq "1") {
+                    $MC_Error_Type_Code = $IA32_MCi_STATUS.status_register_validity_indicators.UC `
+                        + $IA32_MCi_STATUS.status_register_validity_indicators.EN `
+                        + $IA32_MCi_STATUS.status_register_validity_indicators.PCC `
+                        + $IA32_MCi_STATUS.reserved_error_status_other_information.S `
+                        + $IA32_MCi_STATUS.reserved_error_status_other_information.AR
+                    Write-Verbose "Status register validity indicators:"
+                    $message = "  => UC:  " + $IA32_MCi_STATUS.status_register_validity_indicators.UC; Write-Verbose $message
+                    $message = "  => EN:  " + $IA32_MCi_STATUS.status_register_validity_indicators.EN; Write-Verbose $message
+                    $message = "  => PCC: " + $IA32_MCi_STATUS.status_register_validity_indicators.PCC; Write-Verbose $message
+                    $message = "  => S:   " + $IA32_MCi_STATUS.reserved_error_status_other_information.S; Write-Verbose $message
+                    $message = "  => AR:  " + $IA32_MCi_STATUS.reserved_error_status_other_information.AR; Write-Verbose $message
+                    Write-Verbose "UCR Error Type Code: $MC_Error_Type_Code"
+
                     Switch -Regex ($MC_Error_Type_Code) {
                         "111.." {
                             $MC_Error_Type = "UC" # Uncorrected Error
