@@ -86,7 +86,7 @@ if (-not (Test-Path $Dest)) {
         Write-Host -ForegroundColor Green "[OK]"
     }
     else {
-        Write-Host -ForegroundColor Red "[FAIL]`n  Module installed but not available, cannot import."
+        Write-Host -ForegroundColor Red "[FAIL]`n  Module was installed but not available, cannot import."
         exit 1
     }
 
