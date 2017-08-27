@@ -3,7 +3,7 @@
 This module reveals three Cmdlets:
   * ConvertFrom-VMHostMCELog
   * ConvertFrom-IA32\_MCG\_CAP - Decode IA32\_MCG\_CAP MSR. (Model Specific Register)
-  * ConvertFrom-VMHostCPUID - Fetch CPUID information of given ESXi Host
+  * ConvertFrom-VMHostCPUID - Fetch CPUID information of given ESXi Host via Get-EsxCli Cmdlet (vCenter/ESXi connection required)
 
 The machine check architecture is a mechanism within a CPU to detect and report hardware issues. When a problem is detected, a Machine Check Exception (MCE) is thrown.
 MCE consists of a set of model-specific registers (MSRs) that are used to set up machine checking and additional banks of MSRs used for recording errors that are detected.
