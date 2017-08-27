@@ -905,7 +905,10 @@ function ConvertFrom-VMHostMCELog {
                             break
                         }
                         "1.000" {
-                            $MC_Error_Type = "UCNA" # Uncorrected no action required (UCNA) / SRAO if CMC Signaling
+                            # Uncorrected no action required (UCNA) / SRAO if CMC Signaling
+                            # Actually vmkernel.log has separate log entry on MCA errors detected via CMCI, they're ignored here for simplicity.
+                            # 2016-06-28T11:57:11.793Z cpu20:37018)MCE: 1012: cpu20: MCA error detected via CMCI (Gbl status=0x0): Restart IP: invalid, Error IP: invalid, MCE in progress: no.
+                            $MC_Error_Type = "SRAO/UCNA"
                             break
                         }
                         "0...." {
