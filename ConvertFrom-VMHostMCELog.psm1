@@ -167,8 +167,8 @@ function ConvertFrom-VMHostCPUID {
 
         $CPUID = @{}
 
-        $CPUID_01H = @{
-            "EAX" = @{
+        $CPUID_01H = [ordered]@{
+            "EAX" = [ordered]@{
                 "Stepping ID" = $null
                 "Model ID" = $null
                 "Family ID" = $null
@@ -177,13 +177,13 @@ function ConvertFrom-VMHostCPUID {
                 "Extended Family ID" = $null
                 "DisplayFamily_DisplayModel" = $null
             }
-            "EBX" = @{
+            "EBX" = [ordered]@{
                 "Brand Index" = $null # Bits 07 - 00: Brand Index.
                 "CFLUSH line size" = $null # Bits 15 - 08: CLFLUSH line size (Value ∗ 8 = cache line size in bytes; used also by CLFLUSHOPT).
                 "Maximum number of addressable IDs for logical processors in this physical package" = $null # Bits 23 - 16: Maximum number of addressable IDs for logical processors in this physical package*.
                 "Initial APIC ID" = $null # Bits 31 - 24: Initial APIC ID.
             }
-            "ECX" = @{
+            "ECX" = [ordered]@{
                 # ECX Feature Information (see Figure 3-7 and Table 3-10).
                 "SSE3" = $null # Streaming SIMD Extensions 3 (SSE3).
                 "PCLMULQDQ" = $null # Carryless Multiplication
@@ -216,7 +216,7 @@ function ConvertFrom-VMHostCPUID {
                 "F16C" = $null
                 "RDRAND" = $null
             }
-            "EDX" = @{
+            "EDX" = [ordered]@{
                 # EDX Feature Information (see Figure 3-8 and Table 3-11).
                 "FPU" = $null # Floating Point Unit On-Chip.
                 "VME" = $null # Virtual 8086 Mode Enhancements.
@@ -250,34 +250,34 @@ function ConvertFrom-VMHostCPUID {
             }
         }
 
-        $CPUID_80000000H = @{
-            "EAX" = @{
+        $CPUID_80000000H = [ordered]@{
+            "EAX" = [ordered]@{
                 "Maximum Input Value for Extended Function CPUID Information" = $null
             }
-            "EBX" = @{
+            "EBX" = [ordered]@{
                 # Reserved.
             }
-            "ECX" = @{
+            "ECX" = [ordered]@{
                 # Reserved.
             }
-            "EDX" = @{
+            "EDX" = [ordered]@{
                 # Reserved.
             }
         }
 
-        $CPUID_80000001H = @{
-            "EAX" = @{
+        $CPUID_80000001H = [ordered]@{
+            "EAX" = [ordered]@{
                 # Extended Processor Signature and Feature Bits.
             }
-            "EBX" = @{
+            "EBX" = [ordered]@{
                 # Reserved.
             }
-            "ECX" = @{
+            "ECX" = [ordered]@{
                 "LAHF/SAHF" = $null # Bit 00: LAHF/SAHF available in 64-bit mode.
                 "LZCNT" = $null # Bit 05
                 "PREFETCHW" = $null # Bit 08
             }
-            "EDX" = @{
+            "EDX" = [ordered]@{
                 "SYSCALL/SYSRET" = $null # Bit 11: SYSCALL/SYSRET available in 64-bit mode.
                 "XD" = $null # Bit 20: Execute Disable Bit available.
                 "GBPAGE" = $null # Bit 26: 1-GByte pages are available if 1.
@@ -286,18 +286,18 @@ function ConvertFrom-VMHostCPUID {
             }
         }
 
-        $CPUID_80000008H = @{
-            "EAX" = @{
+        $CPUID_80000008H = [ordered]@{
+            "EAX" = [ordered]@{
                 "Physical Address Bits" = $null # Bits 07 - 00: #Physical Address Bits*.
                 "Linear Address Bits" = $null # Bits 15 - 08: #Linear Address Bits.
             }
-            "EBX" = @{
+            "EBX" = [ordered]@{
                 # Reserved.
             }
-            "ECX" = @{
+            "ECX" = [ordered]@{
                 # Reserved.
             }
-            "EDX" = @{
+            "EDX" = [ordered]@{
                 # Reserved.
             }
         }
@@ -495,7 +495,7 @@ function ConvertFrom-VMHostCPUID {
                 return $CPUID_01H.EAX.DisplayFamily_DisplayModel
             }
             else {
-                return @{
+                return [ordered]@{
                     "CPUID" = $CPUID
                     "CPUID_01H" = $CPUID_01H
                     "CPUID_80000000H" = $CPUID_80000000H
@@ -554,7 +554,7 @@ function ConvertFrom-IA32_MCG_CAP {
     )
 
     Begin {
-        $IA32_MCG_CAP = @{
+        $IA32_MCG_CAP = [ordered]@{
             "MCG_Count" = $null # bits 7:0 - number of hardware unit error-reporting banks available
             "MCG_CTL_P" = $null # bit 8 - control MSR present
             "MCG_EXT_P" = $null # bit 9 - extended MSRs present
@@ -759,7 +759,7 @@ function ConvertFrom-VMHostMCELog {
         if ($IA32_MCG_CAP.GetType().Name -in @("Int32", "String")) {
             $IA32_MCG_CAP = ConvertFrom-IA32_MCG_CAP $IA32_MCG_CAP
         }
-        elseif ($IA32_MCG_CAP.GetType().Name -eq "Hashtable") {
+        elseif ($IA32_MCG_CAP.GetType().Name -eq "OrderedDictionary") {
             if ($IA32_MCG_CAP.Count -notin @(9, 10)) {
                 Write-Warning "Invalid IA32_MCG_CAP, stop decoding."
                 exit 1
@@ -790,15 +790,22 @@ function ConvertFrom-VMHostMCELog {
     }
 
     Process {
-        $InputObject -split "`n" | Where-Object { $_ -like "*MCE:*cpu*bank*status=*Addr:*Misc:*" } | ForEach-Object {
+        $InputObject -split "`n" | Where-Object { $_ -like "*MCE:*cpu*bank*status*[Addr|Misc]:*" } | ForEach-Object {
             $parsed_data = @{
                 "timestamp" = ($_ -split " ")[0]
-                "status" = (($_ -split "status=")[1] -split ":")[0]
-                "cpu" = (($_ -split "cpu")[2] -split ":")[0]
+                "status" = ((($_ -split "status")[1] -split " ")[0]) -replace ":|=",""
+                "cpu" = (($_ -split "cpu")[1] -split ":")[0]
                 "bank" = (($_ -split "bank")[1] -split ":")[0]
-                "addr" = (($_ -split "Addr:")[1] -split " ")[0]
-                "misc" = (($_ -split "Misc:")[1] -split " ")[0]
+                "addr" = ((($_ -split "Addr")[1] -split " ")[0]) -replace ":",""
+                "misc" = ((($_ -split "Misc")[1] -split " ")[0]) -replace ":",""
             }
+            Write-Verbose "Parsed Data:"
+            $message = "  => Timestamp: " + $parsed_data.timestamp; Write-Verbose $message
+            $message = "  => Status:    " + $parsed_data.status; Write-Verbose $message
+            $message = "  => cpu:       " + $parsed_data.cpu; Write-Verbose $message
+            $message = "  => bank:      " + $parsed_data.bank; Write-Verbose $message
+            $message = "  => Addr:      " + $parsed_data.addr; Write-Verbose $message
+            $message = "  => Misc:      " + $parsed_data.misc; Write-Verbose $message
 
             # IA32_MCi_STATUS MSRs
             $IA32_MCi_STATUS = @{
@@ -808,9 +815,9 @@ function ConvertFrom-VMHostMCELog {
                     "Error_Code" = $null
                     "Meaning" = $null
                 }
-                "model_specific_errors" = @{} # Model-specific error code field, bits 31:16
-                "reserved_error_status_other_information" = @{} # Reserved, Error Status and Other Information fields, bits 56:32
-                "status_register_validity_indicators" = @{ # bits [63:57]
+                "model_specific_errors" = [ordered]@{} # Model-specific error code field, bits 31:16
+                "reserved_error_status_other_information" = [ordered]@{} # Reserved, Error Status and Other Information fields, bits 56:32
+                "status_register_validity_indicators" = [ordered]@{ # bits [63:57]
                     "VAL"   = $null # IA32_MCi_STATUS register valid
                     "OVER"  = $null # machine check overflow
                     "UC"    = $null # error uncorrected
@@ -870,13 +877,20 @@ function ConvertFrom-VMHostMCELog {
 
                 # Indicates (when set) that the processor supports software error recovery
                 # Determine Type of Error
-                if ($IA32_MCG_CAP.MCG_SER_P -eq "1") {
-                    $MC_Error_Type_Code = $IA32_MCi_STATUS.status_register_validity_indicators.UC `
-                        + $IA32_MCi_STATUS.status_register_validity_indicators.EN `
-                        + $IA32_MCi_STATUS.status_register_validity_indicators.PCC `
-                        + $IA32_MCi_STATUS.reserved_error_status_other_information.S `
-                        + $IA32_MCi_STATUS.reserved_error_status_other_information.AR
+                $MC_Error_Type_Code = $IA32_MCi_STATUS.status_register_validity_indicators.UC `
+                    + $IA32_MCi_STATUS.status_register_validity_indicators.EN `
+                    + $IA32_MCi_STATUS.status_register_validity_indicators.PCC `
+                    + $IA32_MCi_STATUS.reserved_error_status_other_information.S `
+                    + $IA32_MCi_STATUS.reserved_error_status_other_information.AR
+                Write-Verbose "Status register validity indicators:"
+                $message = "  => UC:  " + $IA32_MCi_STATUS.status_register_validity_indicators.UC; Write-Verbose $message
+                $message = "  => EN:  " + $IA32_MCi_STATUS.status_register_validity_indicators.EN; Write-Verbose $message
+                $message = "  => PCC: " + $IA32_MCi_STATUS.status_register_validity_indicators.PCC; Write-Verbose $message
+                $message = "  => S:   " + $IA32_MCi_STATUS.reserved_error_status_other_information.S; Write-Verbose $message
+                $message = "  => AR:  " + $IA32_MCi_STATUS.reserved_error_status_other_information.AR; Write-Verbose $message
+                Write-Verbose "UCR Error Type Code: $MC_Error_Type_Code"
 
+                if ($IA32_MCG_CAP.MCG_SER_P -eq "1") {
                     Switch -Regex ($MC_Error_Type_Code) {
                         "111.." {
                             $MC_Error_Type = "UC" # Uncorrected Error
@@ -886,12 +900,12 @@ function ConvertFrom-VMHostMCELog {
                             $MC_Error_Type = "SRAR" # Software recoverable action required (SRAR)
                             break
                         }
-                        "1.0.0" {
-                            $MC_Error_Type = "SRAO" # Software recoverable action optional (SRAO)
+                        "11010" {
+                            $MC_Error_Type = "SRAO" # Software recoverable action optional (SRAO) / MCE Signaling
                             break
                         }
                         "1.000" {
-                            $MC_Error_Type = "UCNA" # Uncorrected no action required (UCNA)
+                            $MC_Error_Type = "UCNA" # Uncorrected no action required (UCNA) / SRAO if CMC Signaling
                             break
                         }
                         "0...." {
@@ -900,7 +914,6 @@ function ConvertFrom-VMHostMCELog {
                         }
                         Default {
                             Write-Warning "UCR Error Classification could not be identified"
-                            return
                         }
                     }
                 }
@@ -1077,6 +1090,7 @@ function ConvertFrom-VMHostMCELog {
                             # Memory Scrubbing
                             if ($memory_transaction_type.Transaction -eq "Memory Scrubbing Error") {
                                 $IA32_MCi_STATUS.mca_error_codes.Meaning = "Architecturally Defined SRAO Errors / Memory Scrubbing / " + $channel.Transaction
+                                $MC_Error_Type = "SRAO"
                                 # For the memory scrubbing and L3 explicit writeback errors,
                                 # the address mode in the IA32_MCi_MISC register should be set as physical address mode (010b)
                                 # and the address LSB information in the IA32_MCi_MISC register should indicate
@@ -1115,6 +1129,7 @@ function ConvertFrom-VMHostMCELog {
                                 -and ($transaction_type.Transaction_Type -eq "Generic") `
                                 -and ($memory_hierarchy_level.Hierarchy_Level -eq "Level 2")) {
                                 $IA32_MCi_STATUS.mca_error_codes.Meaning = "Architecturally Defined SRAO Errors / L3 Explicit Writeback"
+                                $MC_Error_Type = "SRAO"
                                 # For the memory scrubbing and L3 explicit writeback errors,
                                 # the address mode in the IA32_MCi_MISC register should be set as physical address mode (010b)
                                 # and the address LSB information in the IA32_MCi_MISC register should indicate
@@ -1139,12 +1154,14 @@ function ConvertFrom-VMHostMCELog {
                                 ($transaction_type.Transaction_Type -eq "Data") -and
                                 ($memory_hierarchy_level.Hierarchy_Level -eq "Level 0")) {
                                 $IA32_MCi_STATUS.mca_error_codes.Meaning = "Architecturally Defined SRAR Errors / Data Load"
+                                $MC_Error_Type = "SRAR"
                             }
                             # Instruction Fetch
                             elseif (($request.Request_Type -eq "Instruction Fetch") -and
                                 ($transaction_type.Transaction_Type -eq "Instruction") -and
                                 ($memory_hierarchy_level.Hierarchy_Level -eq "Level 0")) {
                                 $IA32_MCi_STATUS.mca_error_codes.Meaning = "Architecturally Defined SRAR Errors / Instruction Fetch"
+                                $MC_Error_Type = "SRAR"
                             }
                             # For the data load and instruction fetch errors,
                             # the address mode in the IA32_MCi_MISC register should be set as physical address mode (010b)
